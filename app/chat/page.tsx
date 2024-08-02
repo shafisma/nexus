@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from 'react'
 import { useUser, UserButton } from '@clerk/nextjs'
 import { useChatStore } from '@/store/chatStore'
 import { pusherClient } from '@/lib/pusher'
+import EmojiPicker from 'emoji-picker-react'
 
 interface Message {
   id: string;
@@ -18,13 +19,15 @@ export default function ChatPage() {
   const [message, setMessage] = useState('')
   const { messages, addMessage, setMessages } = useChatStore()
   const messagesEndRef = useRef<null | HTMLDivElement>(null)
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false)
 
   useEffect(() => {
     const channel = pusherClient.subscribe('chat')
     channel.bind('new-message', (newMessage: Omit<Message, 'createdAt'> & { createdAt: string }) => {
       addMessage({
         ...newMessage,
-        createdAt: new Date(newMessage.createdAt).toISOString()
+        createdAt: new Date(newMessage.createdAt).toISOString(),
+        userName: newMessage.userName || ''
       })
     })
 
@@ -37,7 +40,6 @@ export default function ChatPage() {
     fetch('/api/messages')
       .then(res => res.json())
       .then(data => {
-        // Clear existing messages and set new ones
         setMessages(data.map((msg: Message) => ({
           ...msg,
           createdAt: new Date(msg.createdAt).toISOString()
@@ -88,6 +90,11 @@ export default function ChatPage() {
     return groups
   }
 
+  const handleEmojiClick = (emojiObject: any) => {
+    setMessage(prevMessage => prevMessage + emojiObject.emoji)
+    setShowEmojiPicker(false)
+  }
+
   const groupedMessages = groupMessagesByDate(messages)
 
   return (
@@ -134,13 +141,27 @@ export default function ChatPage() {
       </main>
       <form onSubmit={sendMessage} className="p-4 bg-white border-t border-gray-200">
         <div className="flex space-x-2">
-          <input
-            type="text"
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            placeholder="Type a message..."
-            className="text-black flex-1 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          />
+          <div className="relative flex-1">
+            <input
+              type="text"
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              placeholder="Type a message..."
+              className="w-full p-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+            <button
+              type="button"
+              onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+              className="absolute right-2 top-2 text-gray-500 hover:text-gray-700"
+            >
+              😊
+            </button>
+            {showEmojiPicker && (
+              <div className="absolute bottom-12 right-0 z-10">
+                <EmojiPicker onEmojiClick={handleEmojiClick} />
+              </div>
+            )}
+          </div>
           <button 
             type="submit"
             className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition duration-300"

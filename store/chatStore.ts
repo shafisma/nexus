@@ -3,7 +3,9 @@ import { create } from 'zustand';
 interface Message {
   id: string;
   content: string;
+  fileUrl?: string | null;
   userId: string;
+  userName: string;
   createdAt: string;
 }
 
