@@ -3,8 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider = "postgresql"
+  url      = "postgresql://meta_owner:v0q5VmPjUnJH@ep-red-sun-a1fcy8l0.ap-southeast-1.aws.neon.tech/meta?sslmode=require"
 }
 
 model Message {
